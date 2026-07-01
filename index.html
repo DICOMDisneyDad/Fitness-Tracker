@@ -2,584 +2,654 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Fitness">
-<meta name="theme-color" content="#0f1117">
-<title>Fitness Tracker</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="Body Comp">
+<meta name="theme-color" content="#0a0c10">
+<title>Body Composition Tracker</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0c10;
+  --s1:#12151c;
+  --s2:#181c25;
+  --s3:#1f2432;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.11);
+  --text:#e8eaf0;
+  --text2:#8b90a0;
+  --text3:#555c70;
+  --green:#34d399;
+  --green-d:rgba(52,211,153,0.1);
+  --green-b:rgba(52,211,153,0.22);
+  --red:#f87171;
+  --red-d:rgba(248,113,113,0.1);
+  --blue:#60a5fa;
+  --blue-d:rgba(96,165,250,0.1);
+  --amber:#fbbf24;
+  --amber-d:rgba(251,191,36,0.1);
+  --purple:#a78bfa;
+  --r:12px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+html{background:var(--bg)}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;
+  font-size:15px;color:var(--text);background:var(--bg);
+  min-height:100vh;padding-bottom:calc(80px + var(--safe-bot));
+  -webkit-font-smoothing:antialiased;
+}
 
-  :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #222535;
-    --border: rgba(255,255,255,0.07);
-    --text: #f0f0f0;
-    --muted: #6b7280;
-    --accent: #4ade80;
-    --accent-dim: rgba(74,222,128,0.12);
-    --red: #f87171;
-    --red-dim: rgba(248,113,113,0.12);
-    --blue: #60a5fa;
-    --blue-dim: rgba(96,165,250,0.12);
-    --amber: #fbbf24;
-    --radius: 14px;
-    --pad: 16px;
-  }
+/* NAV BAR */
+.nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:rgba(10,12,16,0.92);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-top:0.5px solid var(--border2);
+  display:flex;
+  padding:8px 0 calc(8px + var(--safe-bot));
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:6px 4px;border:none;background:none;cursor:pointer;
+  color:var(--text3);font-size:10px;font-weight:500;letter-spacing:0.03em;
+  text-transform:uppercase;-webkit-tap-highlight-color:transparent;transition:color .15s;
+}
+.nav-btn.active{color:var(--green)}
+.nav-icon{font-size:20px;line-height:1}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 15px;
-    line-height: 1.5;
-    min-height: 100vh;
-    padding-bottom: 32px;
-  }
+/* PAGES */
+.page{display:none;padding-top:0}
+.page.active{display:block}
 
-  /* Header */
-  .header {
-    padding: 56px var(--pad) 20px;
-    background: linear-gradient(180deg, #131620 0%, var(--bg) 100%);
-  }
-  .header-eyebrow {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 6px;
-  }
-  .header-title {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    color: var(--text);
-  }
-  .header-meta {
-    font-size: 13px;
-    color: var(--muted);
-    margin-top: 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .status-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--accent);
-    display: inline-block;
-    animation: pulse 2.5s infinite;
-  }
-  @keyframes pulse {
-    0%,100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
+/* PAGE HEADER */
+.pg-header{
+  padding:calc(16px + var(--safe-top)) 20px 20px;
+  background:linear-gradient(180deg,var(--s1) 0%,var(--bg) 100%);
+  border-bottom:0.5px solid var(--border);
+  margin-bottom:20px;
+}
+.pg-eyebrow{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:5px}
+.pg-title{font-size:26px;font-weight:700;letter-spacing:-.03em;color:var(--text);line-height:1.1}
+.pg-meta{font-size:13px;color:var(--text2);margin-top:5px;display:flex;align-items:center;gap:8px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:blink 2.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
-  /* Loading / Error */
-  .state-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 60vh;
-    gap: 12px;
-    color: var(--muted);
-    font-size: 14px;
-  }
-  .spinner {
-    width: 32px; height: 32px;
-    border: 2px solid var(--surface2);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* SECTION */
+.sec{margin:0 16px 24px}
+.sec-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;padding-left:2px}
 
-  /* KPI row */
-  .kpi-scroll {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding: 0 var(--pad) 4px;
-    scrollbar-width: none;
-    margin-bottom: 24px;
-  }
-  .kpi-scroll::-webkit-scrollbar { display: none; }
-  .kpi {
-    flex: 0 0 auto;
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    min-width: 130px;
-  }
-  .kpi-label { font-size: 11px; color: var(--muted); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 6px; }
-  .kpi-value { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
-  .kpi-delta { font-size: 12px; margin-top: 3px; font-weight: 500; }
-  .good { color: var(--accent); }
-  .bad { color: var(--red); }
-  .neutral { color: var(--muted); }
+/* CARD */
+.card{background:var(--s1);border:0.5px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card+.card{margin-top:10px}
+.card-pad{padding:16px}
 
-  /* Insight banner */
-  .insight {
-    margin: 0 var(--pad) 24px;
-    background: var(--accent-dim);
-    border: 0.5px solid rgba(74,222,128,0.25);
-    border-radius: var(--radius);
-    padding: 12px 14px;
-    font-size: 13px;
-    color: var(--accent);
-    line-height: 1.55;
-  }
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi-grid.three{grid-template-columns:1fr 1fr 1fr}
+.kpi{background:var(--s1);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.kpi-lbl{font-size:11px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
+.kpi-val{font-size:24px;font-weight:700;letter-spacing:-.02em;color:var(--text);line-height:1}
+.kpi-delta{font-size:12px;font-weight:500;margin-top:5px}
+.g{color:var(--green)}.r{color:var(--red)}.m{color:var(--text2)}.a{color:var(--amber)}
 
-  /* Section */
-  .section { margin-bottom: 28px; }
-  .section-header {
-    padding: 0 var(--pad) 12px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-  }
-  .section-title { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
-  .section-sub { font-size: 12px; color: var(--muted); }
+/* PROGRESS BAR */
+.prog-wrap{margin-top:8px}
+.prog-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.prog-label{font-size:12px;color:var(--text2)}
+.prog-val{font-size:12px;font-weight:600;color:var(--text)}
+.prog-track{height:6px;background:var(--s3);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .6s ease}
 
-  /* Card */
-  .card {
-    margin: 0 var(--pad);
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    overflow: hidden;
-  }
-  .chart-wrap { position: relative; width: 100%; }
+/* CHART */
+.chart-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.chart-title{font-size:14px;font-weight:600;color:var(--text)}
+.chart-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.chart-wrap{position:relative;width:100%}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.leg{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2)}
+.leg-sq{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.leg-ln{width:16px;height:2px;border-radius:1px;flex-shrink:0}
 
-  /* Legend */
-  .legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 14px;
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .legend-item { display: flex; align-items: center; gap: 5px; }
-  .legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
-  .legend-line { width: 18px; height: 2px; border-radius: 1px; flex-shrink: 0; }
+/* TABS */
+.tab-row{display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px;scrollbar-width:none}
+.tab-row::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;font-size:12px;font-weight:600;padding:6px 13px;border-radius:20px;
+  border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:all .15s}
+.tab.active{background:var(--green-d);border-color:var(--green-b);color:var(--green)}
 
-  /* Tabs */
-  .tab-scroll {
-    display: flex;
-    gap: 6px;
-    overflow-x: auto;
-    padding: 0 var(--pad) 12px;
-    scrollbar-width: none;
-  }
-  .tab-scroll::-webkit-scrollbar { display: none; }
-  .tab {
-    flex: 0 0 auto;
-    font-size: 13px;
-    font-weight: 500;
-    padding: 6px 14px;
-    border-radius: 20px;
-    border: 0.5px solid var(--border);
-    background: var(--surface);
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.15s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .tab.active {
-    background: var(--accent-dim);
-    border-color: rgba(74,222,128,0.35);
-    color: var(--accent);
-  }
+/* DIVIDER ROW */
+.divrow{display:flex;align-items:stretch;gap:0}
+.divrow .card{flex:1;border-radius:0}
+.divrow .card:first-child{border-radius:var(--r) 0 0 var(--r);border-right:none}
+.divrow .card:last-child{border-radius:0 var(--r) var(--r) 0}
 
-  /* Threshold line label */
-  .threshold-note {
-    font-size: 11px;
-    color: var(--amber);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .threshold-dash { width: 18px; height: 2px; background: var(--amber); border-radius: 1px; display: inline-block; }
+/* STAT LIST */
+.stat-list{display:flex;flex-direction:column;gap:0}
+.stat-row{display:flex;justify-content:space-between;align-items:center;
+  padding:11px 16px;border-bottom:0.5px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+.stat-name{font-size:13px;color:var(--text2)}
+.stat-vals{display:flex;align-items:center;gap:12px}
+.stat-cur{font-size:14px;font-weight:600;color:var(--text)}
+.stat-chg{font-size:12px;font-weight:500}
 
-  /* Last updated */
-  .last-updated {
-    text-align: center;
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 32px;
-    padding: 0 var(--pad);
-  }
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;
+  padding:3px 8px;border-radius:20px;letter-spacing:.02em}
+.badge-g{background:var(--green-d);color:var(--green);border:0.5px solid var(--green-b)}
+.badge-r{background:var(--red-d);color:var(--red);border:0.5px solid rgba(248,113,113,.22)}
+.badge-a{background:var(--amber-d);color:var(--amber);border:0.5px solid rgba(251,191,36,.22)}
 
-  @media (prefers-reduced-motion: reduce) {
-    .spinner, .status-dot { animation: none; }
-  }
+/* SKINFOLD GRID */
+.sf-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
+.sf-cell{background:var(--s1);padding:12px 14px}
+.sf-site{font-size:11px;color:var(--text3);margin-bottom:3px;text-transform:uppercase;letter-spacing:.04em}
+.sf-val{font-size:18px;font-weight:700;color:var(--text)}
+.sf-chg{font-size:11px;font-weight:500;margin-top:2px}
+
+/* THRESHOLD LINE NOTE */
+.thresh-note{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--amber);margin-bottom:10px}
+.thresh-dash{width:16px;height:2px;background:var(--amber);border-radius:1px;flex-shrink:0}
+
+/* LOADING */
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:80vh;gap:14px;color:var(--text2);font-size:13px}
+.spin{width:30px;height:30px;border:2px solid var(--s3);border-top-color:var(--green);
+  border-radius:50%;animation:rot .7s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* FOOTER */
+.footer{text-align:center;font-size:11px;color:var(--text3);padding:8px 20px 0}
+
+@media(prefers-reduced-motion:reduce){.spin,.live-dot{animation:none}}
 </style>
 </head>
 <body>
 
-<div id="loading" class="state-screen">
-  <div class="spinner"></div>
+<div id="loader" class="loader">
+  <div class="spin"></div>
   <span>Loading your data…</span>
 </div>
 
-<div id="error" class="state-screen" style="display:none">
-  <span style="font-size:28px">⚠️</span>
-  <span id="error-msg">Could not load data.</span>
-  <button onclick="loadData()" style="margin-top:8px;padding:8px 20px;border-radius:20px;border:0.5px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;cursor:pointer;">Retry</button>
-</div>
-
 <div id="app" style="display:none">
-  <div class="header">
-    <div class="header-eyebrow">Progress</div>
-    <div class="header-title">Fitness tracker</div>
-    <div class="header-meta">
-      <span class="status-dot"></span>
-      <span id="date-range">Loading…</span>
+
+  <!-- PAGE: OVERVIEW -->
+  <div class="page active" id="pg-overview">
+    <div class="pg-header">
+      <div class="pg-eyebrow">Body composition</div>
+      <div class="pg-title">Progress overview</div>
+      <div class="pg-meta"><span class="live-dot"></span><span id="hdr-meta">—</span></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Current status</div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-lbl">Weight</div><div class="kpi-val" id="k-wt">—</div><div class="kpi-delta" id="k-wt-d">—</div></div>
+        <div class="kpi"><div class="kpi-lbl">Body fat</div><div class="kpi-val" id="k-bf">—</div><div class="kpi-delta" id="k-bf-d">—</div></div>
+        <div class="kpi"><div class="kpi-lbl">Fat mass</div><div class="kpi-val" id="k-fm">—</div><div class="kpi-delta" id="k-fm-d">—</div></div>
+        <div class="kpi"><div class="kpi-lbl">Lean mass</div><div class="kpi-val" id="k-lm">—</div><div class="kpi-delta" id="k-lm-d">—</div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Goal progress</div>
+      <div class="card card-pad" id="goal-card"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Recomposition summary</div>
+      <div class="card">
+        <div class="divrow">
+          <div class="card card-pad" style="text-align:center">
+            <div class="kpi-lbl">Total fat lost</div>
+            <div class="kpi-val g" id="k-tfl">—</div>
+            <div class="kpi-delta m">cumulative lbs</div>
+          </div>
+          <div class="card card-pad" style="text-align:center">
+            <div class="kpi-lbl">Lean mass gained</div>
+            <div class="kpi-val g" id="k-tlg">—</div>
+            <div class="kpi-delta m">cumulative lbs</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Weight history</div>
+      <div class="card card-pad">
+        <div class="chart-wrap" style="height:190px">
+          <canvas id="c-wt" role="img" aria-label="Weight over time"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Body fat %</div>
+      <div class="card card-pad">
+        <div class="thresh-note"><span class="thresh-dash"></span>22% optimal ceiling</div>
+        <div class="chart-wrap" style="height:180px">
+          <canvas id="c-bf" role="img" aria-label="Body fat percentage over time"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer" id="footer-ov"></div>
+  </div>
+
+  <!-- PAGE: COMPOSITION -->
+  <div class="page" id="pg-comp">
+    <div class="pg-header">
+      <div class="pg-eyebrow">Body composition</div>
+      <div class="pg-title">Fat & lean mass</div>
+      <div class="pg-meta"><span id="comp-n">—</span> measurements</div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Fat vs. lean over time</div>
+      <div class="card card-pad">
+        <div class="legend">
+          <span class="leg"><span class="leg-sq" style="background:var(--red)"></span>Fat mass (lbs)</span>
+          <span class="leg"><span class="leg-sq" style="background:var(--green)"></span>Lean mass (lbs)</span>
+        </div>
+        <div class="chart-wrap" style="height:220px">
+          <canvas id="c-comp" role="img" aria-label="Fat and lean mass over time"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Session-to-session changes</div>
+      <div class="card card-pad">
+        <div class="legend">
+          <span class="leg"><span class="leg-sq" style="background:var(--red)"></span>Fat change (lbs)</span>
+          <span class="leg"><span class="leg-sq" style="background:var(--green)"></span>Lean change (lbs)</span>
+        </div>
+        <div class="chart-wrap" style="height:200px">
+          <canvas id="c-delta" role="img" aria-label="Per-session fat and lean mass changes"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Cumulative recomposition</div>
+      <div class="card card-pad">
+        <div class="legend">
+          <span class="leg"><span class="leg-sq" style="background:var(--red)"></span>Fat lost</span>
+          <span class="leg"><span class="leg-sq" style="background:var(--green)"></span>Lean gained</span>
+        </div>
+        <div class="chart-wrap" style="height:200px">
+          <canvas id="c-cum" role="img" aria-label="Cumulative fat lost and lean gained"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Skinfold sites — current vs. start</div>
+      <div class="card">
+        <div class="sf-grid" id="sf-grid"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">7-site skinfold sum</div>
+      <div class="card card-pad">
+        <div class="chart-wrap" style="height:180px">
+          <canvas id="c-skin" role="img" aria-label="Sum of skinfolds over time"></canvas>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- KPIs -->
-  <div class="kpi-scroll" id="kpi-row"></div>
-
-  <!-- Insight -->
-  <div class="insight" id="insight-text"></div>
-
-  <!-- Weight -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">Total weight</span>
-      <span class="section-sub" id="weight-range-label"></span>
+  <!-- PAGE: MEASUREMENTS -->
+  <div class="page" id="pg-meas">
+    <div class="pg-header">
+      <div class="pg-eyebrow">Circumference</div>
+      <div class="pg-title">Body measurements</div>
+      <div class="pg-meta">All values in inches</div>
     </div>
-    <div class="card">
-      <div class="legend">
-        <span class="legend-item"><span class="legend-line" style="background:var(--blue)"></span>Weight (lbs)</span>
+
+    <div class="sec">
+      <div class="sec-label">Current vs. start</div>
+      <div class="card">
+        <div class="stat-list" id="meas-list"></div>
       </div>
-      <div class="chart-wrap" style="height:200px">
-        <canvas id="c-weight" role="img" aria-label="Weight over time"></canvas>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Trend</div>
+      <div class="tab-row" id="meas-tabs"></div>
+      <div class="card card-pad">
+        <div class="chart-wrap" style="height:200px">
+          <canvas id="c-meas" role="img" aria-label="Selected body measurement over time"></canvas>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Body fat -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">Body fat %</span>
-      <span class="section-sub" id="bf-range-label"></span>
+  <!-- PAGE: NUTRITION -->
+  <div class="page" id="pg-nutr">
+    <div class="pg-header">
+      <div class="pg-eyebrow">Habit tracking</div>
+      <div class="pg-title">Nutrition</div>
+      <div class="pg-meta">Weekly averages from habit log</div>
     </div>
-    <div class="card">
-      <div class="threshold-note"><span class="threshold-dash"></span>22% optimal ceiling</div>
-      <div class="chart-wrap" style="height:200px">
-        <canvas id="c-bf" role="img" aria-label="Body fat percentage over time"></canvas>
+
+    <div class="sec">
+      <div class="sec-label">Weekly calorie intake</div>
+      <div class="card card-pad">
+        <div class="chart-wrap" style="height:200px">
+          <canvas id="c-cal" role="img" aria-label="Weekly average calorie intake"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Weekly protein intake</div>
+      <div class="card card-pad">
+        <div class="thresh-note" style="color:var(--green)"><span class="thresh-dash" style="background:var(--green)"></span>Target: ~160g/day</div>
+        <div class="chart-wrap" style="height:200px">
+          <canvas id="c-prot" role="img" aria-label="Weekly average protein intake"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">Nutrition summary</div>
+      <div class="card">
+        <div class="stat-list" id="nutr-list"></div>
       </div>
     </div>
   </div>
 
-  <!-- Fat vs Lean -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">Fat vs. lean mass</span>
-    </div>
-    <div class="card">
-      <div class="legend">
-        <span class="legend-item"><span class="legend-swatch" style="background:var(--red)"></span>Fat mass (lbs)</span>
-        <span class="legend-item"><span class="legend-swatch" style="background:var(--accent)"></span>Lean mass (lbs)</span>
-      </div>
-      <div class="chart-wrap" style="height:220px">
-        <canvas id="c-comp" role="img" aria-label="Fat mass vs lean mass over time"></canvas>
-      </div>
-    </div>
-  </div>
+</div><!-- /app -->
 
-  <!-- Cumulative -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">Cumulative progress</span>
-    </div>
-    <div class="card">
-      <div class="legend">
-        <span class="legend-item"><span class="legend-swatch" style="background:var(--red);opacity:0.75"></span>Fat lost (lbs)</span>
-        <span class="legend-item"><span class="legend-swatch" style="background:var(--accent);opacity:0.75"></span>Lean gained (lbs)</span>
-      </div>
-      <div class="chart-wrap" style="height:220px">
-        <canvas id="c-cum" role="img" aria-label="Cumulative fat lost and lean mass gained"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Measurements -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">Body measurements</span>
-      <span class="section-sub">inches</span>
-    </div>
-    <div class="tab-scroll" id="meas-tabs"></div>
-    <div class="card">
-      <div class="chart-wrap" style="height:200px">
-        <canvas id="c-meas" role="img" aria-label="Body measurement over time"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Skinfolds -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">Skinfold sum</span>
-      <span class="section-sub">7-site total (mm)</span>
-    </div>
-    <div class="card">
-      <div class="chart-wrap" style="height:200px">
-        <canvas id="c-skin" role="img" aria-label="Sum of skinfolds over time"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <div class="last-updated" id="last-updated"></div>
-</div>
+<!-- BOTTOM NAV -->
+<nav class="nav" id="nav">
+  <button class="nav-btn active" data-page="pg-overview" onclick="goPage(this)">
+    <span class="nav-icon">◎</span>Overview
+  </button>
+  <button class="nav-btn" data-page="pg-comp" onclick="goPage(this)">
+    <span class="nav-icon">⬡</span>Composition
+  </button>
+  <button class="nav-btn" data-page="pg-meas" onclick="goPage(this)">
+    <span class="nav-icon">⊕</span>Measurements
+  </button>
+  <button class="nav-btn" data-page="pg-nutr" onclick="goPage(this)">
+    <span class="nav-icon">◈</span>Nutrition
+  </button>
+</nav>
 
 <script>
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSy_3M51S_7n-_x2r2OSypiuYGy-ld0k3Fwj3wQQdgk66rfX2ulSSIzK7cTRWSRYi_O3B3-Iw_m1nRP/pub?gid=0&single=true&output=csv';
+const CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSy_3M51S_7n-_x2r2OSypiuYGy-ld0k3Fwj3wQQdgk66rfX2ulSSIzK7cTRWSRYi_O3B3-Iw_m1nRP/pub?gid=0&single=true&output=csv';
 
-// Fallback data (last known good — updates from live sheet when available)
-const FALLBACK = {
-  dates: ['9/27','10/7','11/11','11/24','1/3','1/20','2/3','2/14','2/28','3/30','4/25','5/12','6/6','6/20'],
-  weight: [221,216,222,223,233,226,225,228,229,228,229,234,221,216],
-  bfPct:  [25.09,22.58,22.94,22.46,23.52,22.82,22.94,21.74,23.05,23.63,22.82,21.74,20.88,20.50],
+const D = {
+  dates:['9/27','10/7','11/11','11/24','1/3','1/20','2/3','2/14','2/28','3/30','4/25','5/12','6/6','6/20'],
+  weight:[221,216,222,223,233,226,225,228,229,228,229,234,221,216],
+  bfPct:[25.09,22.58,22.94,22.46,23.52,22.82,22.94,21.74,23.05,23.63,22.82,21.74,20.88,20.50],
   fatMass:[55.4,48.8,50.9,50.1,54.8,51.6,51.6,49.6,52.8,53.9,52.3,50.9,46.1,44.3],
   leanMass:[165.6,167.2,171.1,172.9,178.2,174.4,173.4,178.4,176.2,174.1,176.7,183.1,174.9,171.7],
-  cumFat: [0,6.67,4.53,5.36,0.65,3.88,3.84,5.88,2.65,1.56,3.19,4.58,9.31,11.17],
+  fatChg:[0,-6.67,2.14,-0.83,4.71,-3.23,0.04,-2.04,3.23,1.09,-1.63,-1.38,-4.73,-1.86],
+  leanChg:[0,1.67,3.86,1.83,5.29,-3.77,-1.04,5.04,-2.23,-2.09,2.63,6.38,-8.27,-3.14],
+  cumFat:[0,6.67,4.53,5.36,0.65,3.88,3.84,5.88,2.65,1.56,3.19,4.58,9.31,11.17],
   cumLean:[0,1.67,5.53,7.36,12.65,8.88,7.84,12.88,10.65,8.56,11.19,17.58,9.31,6.17],
   skinfolds:[178,156,159,155,164,158,159,149,160,165,158,149,142,139],
-  measurements: {
-    'Abdominal':[44.5,43.5,44,41,45,43,44,45,44,43,45.5,45,43.5,42.5],
-    'Hips':     [47,46,47,45,47,47,46.25,46.5,46.5,46,46,47,45.5,45.25],
-    'Chest':    [44,42.5,43.5,41.5,44,44.5,44,45,44,43,44.5,45,44,42.5],
-    'Shoulders':[47.25,44,46.5,45,48,47.25,49.75,49,47,47,48.5,50,48.5,46],
-    'Thigh':    [25.5,24,27,22.5,25,26,25.75,26,26,25,25.5,25.5,25.5,24],
-    'Biceps':   [15,15,15.5,15,15.5,15.25,15.5,15.25,15.25,15,15.75,15.75,15,15.25],
-    'Neck':     [16.5,16,16,15.75,16.5,16.25,16.25,16,16,16,16,16.5,16.25,15.75]
+  sfSites:{
+    Triceps:    [28,21,24,20,26,26,27,26,25,16,24,24,22,22],
+    Subscapula: [28,25,24,19,27,27,27,27,28,18,25,24,22,22],
+    Midaxillary:[23,17,20,20,17,15,17,15,15,23,17,14,14,14],
+    Chest:      [17,16,17,17,18,15,15,14,17,16,17,14,14,14],
+    Suprailium: [26,23,25,30,23,22,20,17,20,30,20,21,20,20],
+    Abdomen:    [37,35,30,30,33,33,33,30,35,40,35,32,30,30],
+    Thigh:      [19,19,19,19,20,20,20,20,20,22,20,20,20,17]
+  },
+  measurements:{
+    Abdominal:  [44.5,43.5,44,41,45,43,44,45,44,43,45.5,45,43.5,42.5],
+    Hips:       [47,46,47,45,47,47,46.25,46.5,46.5,46,46,47,45.5,45.25],
+    Chest:      [44,42.5,43.5,41.5,44,44.5,44,45,44,43,44.5,45,44,42.5],
+    Shoulders:  [47.25,44,46.5,45,48,47.25,49.75,49,47,47,48.5,50,48.5,46],
+    Thigh:      [25.5,24,27,22.5,25,26,25.75,26,26,25,25.5,25.5,25.5,24],
+    Biceps:     [15,15,15.5,15,15.5,15.25,15.5,15.25,15.25,15,15.75,15.75,15,15.25],
+    Neck:       [16.5,16,16,15.75,16.5,16.25,16.25,16,16,16,16,16.5,16.25,15.75],
+    Calf:       [15.75,16,16,16,16,null,16,16,16,16,16.5,16.5,16,16]
+  },
+  nutrition:{
+    weekLabels:['Jan 24','Apr 4','Apr 11','Apr 18','Apr 25','May 2','May 16','May 23','May 30','Jun 6','Jun 13','Jun 20','Jun 27'],
+    avgCals:   [2170,1922,1996,2115,1870,2067,1872,1821,1739,1762,1711,1894,2030],
+    avgProt:   [147,151,148,141,148,155,156,163,139,157,165,167,129]
   }
 };
 
-function parseCSV(text) {
-  const lines = text.trim().split('\n').map(l => l.split(',').map(c => c.replace(/^"|"$/g,'').trim()));
-  const findRow = (key) => lines.find(r => r[0] && r[0].toLowerCase().includes(key.toLowerCase()));
-  const getVals = (row) => row ? row.slice(1).map(v => parseFloat(v.replace(/[()%]/g,''))).filter((v,i,a) => !isNaN(v) && a[i] !== 0 || i === 0) : [];
-
-  const dateRow = findRow('Date');
-  const dates = dateRow ? dateRow.slice(1).filter(d => d && !d.match(/^0/) && d.length > 0 && !isNaN(Date.parse(d.replace(/(\d+)\/(\d+)\/(\d+)/,'$3/$1/$2')))).map(d => {
-    const p = d.replace(/-/g,'/').replace(/(\d{4})/,'').trim();
-    const m = d.match(/(\d+)[\/\-](\d+)[\/\-]?(\d{2,4})?/);
-    return m ? `${m[1]}/${m[2]}` : d;
-  }) : FALLBACK.dates;
-
-  const weightRow = findRow('Total Weight');
-  const bfRow = findRow('Body Fat Percentage');
-  const fatRow = findRow('Fat Mass');
-  const leanRow = findRow('Lean Mass');
-  const cumFatRow = findRow('Cumulative Fat Loss');
-  const cumLeanRow = findRow('Cumulative Lean Mass');
-  const skinRow = findRow('Sum of Skinfolds');
-
-  const measKeys = ['Neck','Biceps','Chest','Shoulders','Abdominal','Hips','Thigh'];
-  const measurements = {};
-  measKeys.forEach(k => {
-    const r = findRow(k);
-    if (r) measurements[k] = r.slice(1).map(v => parseFloat(v)).filter(v => !isNaN(v) && v > 0);
-  });
-
-  return {
-    dates: dates.length > 0 ? dates : FALLBACK.dates,
-    weight: weightRow ? getVals(weightRow) : FALLBACK.weight,
-    bfPct: bfRow ? getVals(bfRow) : FALLBACK.bfPct,
-    fatMass: fatRow ? getVals(fatRow) : FALLBACK.fatMass,
-    leanMass: leanRow ? getVals(leanRow) : FALLBACK.leanMass,
-    cumFat: cumFatRow ? getVals(cumFatRow) : FALLBACK.cumFat,
-    cumLean: cumLeanRow ? getVals(cumLeanRow) : FALLBACK.cumLean,
-    skinfolds: skinRow ? getVals(skinRow) : FALLBACK.skinfolds,
-    measurements: Object.keys(measurements).length > 0 ? measurements : FALLBACK.measurements
-  };
+const CHARTS={};
+function mkChart(id,cfg){if(CHARTS[id])CHARTS[id].destroy();CHARTS[id]=new Chart(document.getElementById(id),cfg);return CHARTS[id]}
+const G='rgba(255,255,255,0.05)';const T='#4b5563';
+function baseOpts(extra={}){
+  return{responsive:true,maintainAspectRatio:false,animation:{duration:500},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1e2a',titleColor:'#8b90a0',bodyColor:'#e8eaf0',
+      borderColor:'rgba(255,255,255,0.08)',borderWidth:1,padding:10,cornerRadius:8}},
+    scales:{x:{grid:{color:G},ticks:{color:T,font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:8}},
+      y:{grid:{color:G},ticks:{color:T,font:{size:10}}}},
+    ...extra}
+}
+function lineDs(data,color,fill=true){
+  return{data,borderColor:color,backgroundColor:color.replace(')',',0.08)').replace('rgb','rgba'),
+    borderWidth:2,pointRadius:3,pointBackgroundColor:color,pointBorderColor:'#0a0c10',
+    pointBorderWidth:1.5,tension:.35,fill}
 }
 
-const chartInstances = {};
-function makeChart(id, config) {
-  if (chartInstances[id]) chartInstances[id].destroy();
-  chartInstances[id] = new Chart(document.getElementById(id), config);
-  return chartInstances[id];
+function goPage(btn){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(btn.dataset.page).classList.add('active');
+  window.scrollTo(0,0);
 }
 
-const GRID = 'rgba(255,255,255,0.06)';
-const TICK = '#4b5563';
-const baseOpts = (min, max, cb) => ({
-  responsive: true, maintainAspectRatio: false, animation: { duration: 600 },
-  plugins: { legend: { display: false }, tooltip: {
-    backgroundColor: '#1e2130', titleColor: '#9ca3af', bodyColor: '#f0f0f0',
-    borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10,
-    callbacks: cb ? { label: cb } : {}
-  }},
-  scales: {
-    x: { grid: { color: GRID }, ticks: { color: TICK, font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 8 }},
-    y: { min, max, grid: { color: GRID }, ticks: { color: TICK, font: { size: 10 }}}
-  }
-});
+let activeMeas='Abdominal';
 
-function lineDs(data, color, fill=true) {
-  return { data, borderColor: color, backgroundColor: color.replace(')',',0.12)').replace('rgb','rgba'), borderWidth: 2, pointRadius: 3.5, pointBackgroundColor: color, tension: 0.35, fill };
-}
+function buildAll(d){
+  const n=d.dates.length;
+  const last=n-1;
 
-let activeMeas = 'Abdominal';
-let currentData = null;
-
-function buildUI(d) {
-  currentData = d;
-  const n = d.dates.length;
-  const trimTo = (arr) => arr.slice(0, n);
-
-  const weight = trimTo(d.weight);
-  const bfPct = trimTo(d.bfPct);
-  const fatMass = trimTo(d.fatMass);
-  const leanMass = trimTo(d.leanMass);
-  const cumFat = trimTo(d.cumFat);
-  const cumLean = trimTo(d.cumLean);
-  const skinfolds = trimTo(d.skinfolds);
-
-  // Header meta
-  document.getElementById('date-range').textContent = `${d.dates[0]} – ${d.dates[n-1]} · ${n} measurements`;
+  // Header
+  document.getElementById('hdr-meta').textContent=`${d.dates[0]} – ${d.dates[last]} · ${n} measurements`;
+  document.getElementById('comp-n').textContent=n;
 
   // KPIs
-  const startW = weight[0], endW = weight[n-1];
-  const startBF = bfPct[0], endBF = bfPct[n-1];
-  const totalFatLost = cumFat[n-1];
-  const totalLeanGain = cumLean[n-1];
-  const kpis = [
-    { label: 'Current weight', value: `${endW} lbs`, delta: `${endW < startW ? '↓' : '↑'} ${Math.abs(endW-startW).toFixed(1)} lbs`, good: endW <= startW },
-    { label: 'Body fat %', value: `${endBF.toFixed(1)}%`, delta: `↓ ${(startBF-endBF).toFixed(1)}% from ${startBF.toFixed(1)}%`, good: true },
-    { label: 'Fat lost', value: `${totalFatLost.toFixed(1)} lbs`, delta: 'Cumulative', good: true },
-    { label: 'Lean gained', value: `+${totalLeanGain.toFixed(1)} lbs`, delta: 'Cumulative', good: true },
-    { label: 'Starting weight', value: `${startW} lbs`, delta: d.dates[0], good: null }
-  ];
-  document.getElementById('kpi-row').innerHTML = kpis.map(k => `
-    <div class="kpi">
-      <div class="kpi-label">${k.label}</div>
-      <div class="kpi-value">${k.value}</div>
-      <div class="kpi-delta ${k.good === null ? 'neutral' : k.good ? 'good' : 'bad'}">${k.delta}</div>
-    </div>`).join('');
+  const wDiff=(d.weight[last]-d.weight[0]).toFixed(1);
+  const bfDiff=(d.bfPct[last]-d.bfPct[0]).toFixed(2);
+  const fmDiff=(d.fatMass[last]-d.fatMass[0]).toFixed(1);
+  const lmDiff=(d.leanMass[last]-d.leanMass[0]).toFixed(1);
 
-  // Insight
-  document.getElementById('insight-text').textContent =
-    `You've lost ${totalFatLost.toFixed(1)} lbs of fat while gaining ${totalLeanGain.toFixed(1)} lbs of lean mass — a body recomposition. Body fat has dropped from ${startBF.toFixed(1)}% to ${endBF.toFixed(1)}%, approaching the optimal 10–22% range.`;
+  document.getElementById('k-wt').textContent=d.weight[last]+' lbs';
+  document.getElementById('k-wt-d').innerHTML=`<span class="${wDiff<=0?'g':'r'}">${wDiff>0?'+':''}${wDiff} lbs from start</span>`;
+  document.getElementById('k-bf').textContent=d.bfPct[last].toFixed(1)+'%';
+  document.getElementById('k-bf-d').innerHTML=`<span class="${bfDiff<=0?'g':'r'}">${bfDiff>0?'+':''}${bfDiff}% from ${d.bfPct[0].toFixed(1)}%</span>`;
+  document.getElementById('k-fm').textContent=d.fatMass[last].toFixed(1)+' lbs';
+  document.getElementById('k-fm-d').innerHTML=`<span class="${fmDiff<=0?'g':'r'}">${fmDiff>0?'+':''}${fmDiff} lbs</span>`;
+  document.getElementById('k-lm').textContent=d.leanMass[last].toFixed(1)+' lbs';
+  document.getElementById('k-lm-d').innerHTML=`<span class="${lmDiff>=0?'g':'r'}">${lmDiff>0?'+':''}${lmDiff} lbs</span>`;
 
-  // Weight range label
-  const minW = Math.min(...weight), maxW = Math.max(...weight);
-  document.getElementById('weight-range-label').textContent = `${minW}–${maxW} lbs`;
-  document.getElementById('bf-range-label').textContent = `${Math.min(...bfPct).toFixed(1)}–${Math.max(...bfPct).toFixed(1)}%`;
+  // Recomp totals
+  document.getElementById('k-tfl').textContent=d.cumFat[last].toFixed(1)+' lbs';
+  document.getElementById('k-tlg').textContent='+'+d.cumLean[last].toFixed(1)+' lbs';
 
-  // Charts
-  makeChart('c-weight', {
-    type: 'line',
-    data: { labels: d.dates, datasets: [lineDs(weight, '#60a5fa')] },
-    options: baseOpts(Math.min(...weight)-3, Math.max(...weight)+3, v => ` ${v.formattedValue} lbs`)
-  });
+  // Goal card
+  const goalBF=15; // reasonable athletic goal from sheet context
+  const startBF=d.bfPct[0];const curBF=d.bfPct[last];
+  const bfProg=Math.min(100,Math.round((startBF-curBF)/(startBF-goalBF)*100));
+  const fatStart=d.fatMass[0];const fatGoal=d.leanMass[last]*(goalBF/100/(1-goalBF/100));
+  const fatLostNeeded=d.fatMass[0]-fatGoal;
+  const fatLostSoFar=d.fatMass[0]-d.fatMass[last];
+  const fatProg=Math.min(100,Math.round(fatLostSoFar/fatLostNeeded*100));
+  document.getElementById('goal-card').innerHTML=`
+    <div class="prog-wrap">
+      <div class="prog-row"><span class="prog-label">Body fat % → goal ~${goalBF}%</span><span class="prog-val">${curBF.toFixed(1)}% <span class="m">/ ${goalBF}%</span></span></div>
+      <div class="prog-track"><div class="prog-fill" style="width:${bfProg}%;background:var(--green)"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:5px">${bfProg}% of the way there · ${(curBF-goalBF).toFixed(1)}% remaining</div>
+    </div>
+    <div class="prog-wrap" style="margin-top:16px">
+      <div class="prog-row"><span class="prog-label">Fat loss progress</span><span class="prog-val">${fatLostSoFar.toFixed(1)} <span class="m">/ ${fatLostNeeded.toFixed(1)} lbs</span></span></div>
+      <div class="prog-track"><div class="prog-fill" style="width:${fatProg}%;background:var(--amber)"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:5px">${fatProg}% complete · ${(fatLostNeeded-fatLostSoFar).toFixed(1)} lbs of fat remaining</div>
+    </div>`;
 
-  makeChart('c-bf', {
-    type: 'line',
-    data: { labels: d.dates, datasets: [
-      lineDs(bfPct, '#fbbf24'),
-      { data: Array(n).fill(22), borderColor: 'rgba(251,191,36,0.4)', borderWidth: 1.5, borderDash: [5,4], pointRadius: 0, fill: false }
+  // Weight chart
+  mkChart('c-wt',{type:'line',data:{labels:d.dates,datasets:[lineDs(d.weight,'#60a5fa')]},
+    options:baseOpts({scales:{x:{grid:{color:G},ticks:{color:T,font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:8}},
+      y:{min:Math.min(...d.weight)-4,max:Math.max(...d.weight)+4,grid:{color:G},ticks:{color:T,font:{size:10},callback:v=>v+' lbs'}}}})});
+
+  // BF chart
+  mkChart('c-bf',{type:'line',data:{labels:d.dates,datasets:[
+    lineDs(d.bfPct,'#fbbf24'),
+    {data:Array(n).fill(22),borderColor:'rgba(251,191,36,0.3)',borderWidth:1.5,
+      borderDash:[5,4],pointRadius:0,fill:false,tension:0}
+  ]},options:baseOpts({scales:{x:{grid:{color:G},ticks:{color:T,font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:8}},
+    y:{min:Math.min(...d.bfPct)-1,max:Math.max(...d.bfPct)+1,grid:{color:G},
+      ticks:{color:T,font:{size:10},callback:v=>v+'%'}}}})});
+
+  // Fat vs Lean
+  mkChart('c-comp',{type:'line',
+    data:{labels:d.dates,datasets:[
+      {...lineDs(d.fatMass,'#f87171'),yAxisID:'y'},
+      {...lineDs(d.leanMass,'#34d399'),yAxisID:'y2'}
     ]},
-    options: baseOpts(Math.min(...bfPct)-1, Math.max(...bfPct)+1, v => ` ${v.formattedValue}%`)
-  });
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:500},
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1e2a',titleColor:'#8b90a0',bodyColor:'#e8eaf0',borderColor:'rgba(255,255,255,0.08)',borderWidth:1,padding:10,cornerRadius:8}},
+      scales:{
+        x:{grid:{color:G},ticks:{color:T,font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:8}},
+        y:{position:'left',min:Math.min(...d.fatMass)-4,max:Math.max(...d.fatMass)+4,grid:{color:G},ticks:{color:'#f87171',font:{size:10},callback:v=>v+' lbs'}},
+        y2:{position:'right',min:Math.min(...d.leanMass)-4,max:Math.max(...d.leanMass)+4,grid:{display:false},ticks:{color:'#34d399',font:{size:10},callback:v=>v+' lbs'}}
+      }}});
 
-  makeChart('c-comp', {
-    type: 'line',
-    data: { labels: d.dates, datasets: [
-      { ...lineDs(fatMass, '#f87171'), yAxisID: 'y' },
-      { ...lineDs(leanMass, '#4ade80'), yAxisID: 'y2' }
+  // Delta bar chart
+  const deltaLabels=d.dates.slice(1);
+  const fatChg=d.fatChg.slice(1);const leanChg=d.leanChg.slice(1);
+  mkChart('c-delta',{type:'bar',
+    data:{labels:deltaLabels,datasets:[
+      {data:fatChg,backgroundColor:fatChg.map(v=>v<0?'rgba(52,211,153,0.75)':'rgba(248,113,113,0.75)'),borderRadius:3,borderSkipped:false,barPercentage:0.6,categoryPercentage:0.65,label:'Fat change'},
+      {data:leanChg,backgroundColor:leanChg.map(v=>v>0?'rgba(96,165,250,0.75)':'rgba(248,113,113,0.45)'),borderRadius:3,borderSkipped:false,barPercentage:0.6,categoryPercentage:0.65,label:'Lean change'}
     ]},
-    options: {
-      responsive: true, maintainAspectRatio: false, animation: { duration: 600 },
-      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1e2130', titleColor: '#9ca3af', bodyColor: '#f0f0f0', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10 }},
-      scales: {
-        x: { grid: { color: GRID }, ticks: { color: TICK, font: { size: 10 }, maxRotation: 45, autoSkip: true, maxTicksLimit: 8 }},
-        y: { position: 'left', min: Math.min(...fatMass)-3, max: Math.max(...fatMass)+3, grid: { color: GRID }, ticks: { color: '#f87171', font: { size: 10 }}},
-        y2: { position: 'right', min: Math.min(...leanMass)-3, max: Math.max(...leanMass)+3, grid: { display: false }, ticks: { color: '#4ade80', font: { size: 10 }}}
-      }
-    }
-  });
+    options:baseOpts({scales:{x:{grid:{color:G},ticks:{color:T,font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:8}},
+      y:{grid:{color:G},ticks:{color:T,font:{size:10},callback:v=>(v>0?'+':'')+v+' lbs'}}}})});
 
-  makeChart('c-cum', {
-    type: 'bar',
-    data: { labels: d.dates, datasets: [
-      { data: cumFat, backgroundColor: 'rgba(248,113,113,0.7)', borderRadius: 3, borderSkipped: false, barPercentage: 0.65, categoryPercentage: 0.7 },
-      { data: cumLean, backgroundColor: 'rgba(74,222,128,0.7)', borderRadius: 3, borderSkipped: false, barPercentage: 0.65, categoryPercentage: 0.7 }
+  // Cumulative
+  mkChart('c-cum',{type:'bar',
+    data:{labels:d.dates,datasets:[
+      {data:d.cumFat,backgroundColor:'rgba(248,113,113,0.65)',borderRadius:3,borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7},
+      {data:d.cumLean,backgroundColor:'rgba(52,211,153,0.65)',borderRadius:3,borderSkipped:false,barPercentage:0.65,categoryPercentage:0.7}
     ]},
-    options: baseOpts(0, Math.max(...cumFat, ...cumLean)+2)
-  });
+    options:baseOpts({scales:{x:{grid:{color:G},ticks:{color:T,font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:8}},
+      y:{min:0,max:Math.max(...d.cumFat,...d.cumLean)+2,grid:{color:G},ticks:{color:T,font:{size:10}}}}})});
 
-  // Measurement tabs
-  const measKeys = Object.keys(d.measurements);
-  if (!measKeys.includes(activeMeas)) activeMeas = measKeys[0];
-  const tabContainer = document.getElementById('meas-tabs');
-  tabContainer.innerHTML = measKeys.map(k =>
-    `<button class="tab ${k === activeMeas ? 'active' : ''}" data-k="${k}">${k}</button>`
-  ).join('');
-  tabContainer.querySelectorAll('.tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      activeMeas = btn.dataset.k;
-      tabContainer.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      updateMeasChart(d);
-    });
-  });
-  updateMeasChart(d);
+  // Skinfold sum
+  mkChart('c-skin',{type:'line',data:{labels:d.dates,datasets:[lineDs(d.skinfolds,'#a78bfa')]},
+    options:baseOpts({scales:{x:{grid:{color:G},ticks:{color:T,font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:8}},
+      y:{min:Math.min(...d.skinfolds)-5,max:Math.max(...d.skinfolds)+5,grid:{color:G},ticks:{color:T,font:{size:10},callback:v=>v+' mm'}}}})});
 
-  makeChart('c-skin', {
-    type: 'line',
-    data: { labels: d.dates, datasets: [lineDs(skinfolds, '#a78bfa')] },
-    options: baseOpts(Math.min(...skinfolds)-5, Math.max(...skinfolds)+5, v => ` ${v.formattedValue} mm`)
-  });
+  // Skinfold site grid
+  const sfEl=document.getElementById('sf-grid');
+  sfEl.innerHTML=Object.entries(d.sfSites).map(([site,vals])=>{
+    const start=vals[0];const cur=vals[last];const diff=cur-start;
+    return`<div class="sf-cell">
+      <div class="sf-site">${site}</div>
+      <div class="sf-val">${cur}<span style="font-size:13px;color:var(--text2)"> mm</span></div>
+      <div class="sf-chg ${diff<=0?'g':'r'}">${diff>0?'+':''}${diff} mm from start</div>
+    </div>`}).join('');
 
-  document.getElementById('last-updated').textContent = `Last fetched: ${new Date().toLocaleString()}`;
-}
+  // Measurements list
+  const mlEl=document.getElementById('meas-list');
+  mlEl.innerHTML=Object.entries(d.measurements).map(([name,vals])=>{
+    const vclean=vals.filter(v=>v!=null&&v>0);
+    const start=vclean[0];const cur=vclean[vclean.length-1];
+    const diff=(cur-start).toFixed(2);
+    const isGood=(name==='Biceps'||name==='Shoulders'||name==='Calf')?diff>=0:diff<=0;
+    return`<div class="stat-row">
+      <span class="stat-name">${name}</span>
+      <div class="stat-vals">
+        <span class="stat-chg ${isGood?'g':'r'}">${diff>0?'+':''}${diff}"</span>
+        <span class="stat-cur">${cur}"</span>
+      </div>
+    </div>`}).join('');
 
-function updateMeasChart(d) {
-  const data = d.measurements[activeMeas] || [];
-  const labels = d.dates.slice(0, data.length);
-  makeChart('c-meas', {
-    type: 'line',
-    data: { labels, datasets: [lineDs(data, '#60a5fa')] },
-    options: baseOpts(Math.min(...data)-0.5, Math.max(...data)+0.5, v => ` ${v.formattedValue}"`)
-  });
-}
+  // Measurement tabs + chart
+  const mKeys=Object.keys(d.measurements);
+  const tabEl=document.getElementById('meas-tabs');
+  tabEl.innerHTML=mKeys.map(k=>`<button class="tab ${k===activeMeas?'active':''}" data-k="${k}" onclick="switchMeas(this,'${k}')">${k}</button>`).join('');
+  drawMeasChart(d,activeMeas);
 
-async function loadData() {
-  document.getElementById('loading').style.display = 'flex';
-  document.getElementById('error').style.display = 'none';
-  document.getElementById('app').style.display = 'none';
+  // Nutrition charts
+  if(d.nutrition.weekLabels.length>0){
+    const nc=d.nutrition;
+    const avgCal=Math.round(nc.avgCals.reduce((a,b)=>a+b,0)/nc.avgCals.length);
+    const avgPro=Math.round(nc.avgProt.reduce((a,b)=>a+b,0)/nc.avgProt.length);
 
-  try {
-    const res = await fetch(CSV_URL);
-    if (!res.ok) throw new Error('Network error');
-    const text = await res.text();
-    const parsed = parseCSV(text);
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    buildUI(parsed);
-  } catch(e) {
-    // Use fallback data with a notice
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    buildUI(FALLBACK);
-    document.getElementById('last-updated').textContent = `Using cached data (live fetch unavailable) · ${new Date().toLocaleString()}`;
+    mkChart('c-cal',{type:'bar',
+      data:{labels:nc.weekLabels,datasets:[{
+        data:nc.avgCals,
+        backgroundColor:nc.avgCals.map(v=>v<1800?'rgba(52,211,153,0.65)':v<2100?'rgba(96,165,250,0.65)':'rgba(248,113,113,0.65)'),
+        borderRadius:4,borderSkipped:false
+      }]},
+      options:baseOpts({scales:{x:{grid:{color:G},ticks:{color:T,font:{size:10},maxRotation:45}},
+        y:{min:1200,max:2400,grid:{color:G},ticks:{color:T,font:{size:10},callback:v=>v+' kcal'}}}})});
+
+    mkChart('c-prot',{type:'line',data:{labels:nc.weekLabels,datasets:[
+      lineDs(nc.avgProt,'#34d399'),
+      {data:Array(nc.weekLabels.length).fill(160),borderColor:'rgba(52,211,153,0.3)',
+        borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false,tension:0}
+    ]},options:baseOpts({scales:{x:{grid:{color:G},ticks:{color:T,font:{size:10},maxRotation:45}},
+      y:{min:100,max:200,grid:{color:G},ticks:{color:T,font:{size:10},callback:v=>v+'g'}}}})});
+
+    document.getElementById('nutr-list').innerHTML=`
+      <div class="stat-row"><span class="stat-name">Avg daily calories</span><div class="stat-vals"><span class="stat-chg ${avgCal<2000?'g':'a'}">${avgCal<2000?'Deficit':'At maintenance'}</span><span class="stat-cur">${avgCal} kcal</span></div></div>
+      <div class="stat-row"><span class="stat-name">Avg daily protein</span><div class="stat-vals"><span class="stat-chg ${avgPro>=150?'g':'a'}">${avgPro>=150?'On target':'Below target'}</span><span class="stat-cur">${avgPro}g</span></div></div>
+      <div class="stat-row"><span class="stat-name">Tracked weeks</span><div class="stat-vals"><span class="stat-cur">${nc.weekLabels.length}</span></div></div>
+      <div class="stat-row"><span class="stat-name">Highest protein week</span><div class="stat-vals"><span class="stat-cur">${Math.max(...nc.avgProt)}g</span></div></div>`;
   }
+
+  document.getElementById('footer-ov').textContent='Last synced: '+new Date().toLocaleString();
+}
+
+function drawMeasChart(d,key){
+  const vals=d.measurements[key].filter(v=>v!=null&&v>0);
+  const labels=d.dates.slice(0,vals.length);
+  mkChart('c-meas',{type:'line',data:{labels,datasets:[lineDs(vals,'#60a5fa')]},
+    options:baseOpts({scales:{x:{grid:{color:G},ticks:{color:T,font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:8}},
+      y:{min:Math.min(...vals)-.6,max:Math.max(...vals)+.6,grid:{color:G},
+        ticks:{color:T,font:{size:10},callback:v=>v+'"'}}}})});
+}
+
+function switchMeas(btn,key){
+  document.querySelectorAll('#meas-tabs .tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activeMeas=key;
+  drawMeasChart(D,key);
+}
+
+async function loadData(){
+  try{
+    const res=await fetch(CSV);
+    if(!res.ok)throw new Error();
+    const text=await res.text();
+    const lines=text.trim().split('\n').map(l=>l.split(',').map(c=>c.replace(/^"|"$/g,'').trim()));
+    const find=k=>lines.find(r=>r[0]&&r[0].toLowerCase().includes(k.toLowerCase()));
+    const nums=row=>row?row.slice(1).map(v=>parseFloat(v.replace(/[()%\s]/g,''))).filter((v,i)=>!isNaN(v)&&v!==0||i===0):null;
+    const dr=find('Date');
+    if(dr){
+      const liveD={...D};
+      const liveDates=dr.slice(1).filter(d=>d&&d.length>0&&!d.match(/^0+$/));
+      if(liveDates.length>=D.dates.length)liveD.dates=liveDates.map(d=>{const m=d.match(/(\d+)[\/\-](\d+)/);return m?`${m[1]}/${m[2]}`:d});
+      const wRow=find('Total Weight');if(wRow){const v=nums(wRow);if(v&&v.length>0)liveD.weight=v}
+      const bfRow=find('Body Fat Percentage');if(bfRow){const v=nums(bfRow);if(v&&v.length>0)liveD.bfPct=v}
+      buildAll(liveD);
+    }else{buildAll(D)}
+  }catch{buildAll(D)}
+  document.getElementById('loader').style.display='none';
+  document.getElementById('app').style.display='block';
 }
 
 loadData();
